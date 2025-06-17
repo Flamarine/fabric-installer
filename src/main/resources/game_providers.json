@@ -1,0 +1,22 @@
+{
+  "gameProviders": {
+    "client": {
+      "name": "com.github.Flamarine:fabric-game-provider:1.0.1:client",
+      "url": "https://jitpack.io/",
+      "md5": "85c0030d7fdf33d2699a860168902713",
+      "sha1": "e25fd1072248fb752eadae2c485f83cf78b559bf",
+      "sha256": "89351cc392ab12e273c9e4c60e813ca67cbf056a89041686d7ae1305205e6062",
+      "sha512": "05ec662558f3a04310ca2f812224804247095262bab67ea1ff22ef830f68cc9df976b1ae5020b16c524ded280a547e97c7bc1a4cd9bc1abe971bae286b3e620c",
+      "size": 14595
+    },
+    "server": {
+      "name": "com.github.Flamarine:fabric-game-provider:1.0.1:server",
+      "url": "https://jitpack.io/",
+      "md5": "6357a3d661cb1119b3dbfa92e1768721",
+      "sha1": "c8d0556a94d3cc1d259f497068b4a8bb83e72898",
+      "sha256": "ee529766f1432a5081a81fde1b41248843967836d29833be18c39ea06cae540c",
+      "sha512": "ffe5406737e713b0286215e5b58260c329b0194117eb4732c06621be0abc578f5782f4a7f7eee9105b35a8d9c51181aac6dee52376404d9b8c2daa009c40658b",
+      "size": 14183
+    }
+  }
+}

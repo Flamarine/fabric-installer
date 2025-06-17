@@ -40,15 +40,30 @@ public class Library {
 
 	public String getURL() {
 		String path;
-		String[] parts = this.name.split(":", 3);
-		path = parts[0].replace(".", "/") + "/" + parts[1] + "/" + parts[2] + "/" + parts[1] + "-" + parts[2] + ".jar";
+		String[] parts = this.name.split(":", 4);
+		String classifier;
 
+		try {
+			classifier = "-" + parts[3];
+		} catch (IndexOutOfBoundsException ignored) {
+			classifier = "";
+		}
+
+		path = parts[0].replace(".", "/") + "/" + parts[1] + "/" + parts[2] + "/" + parts[1] + "-" + parts[2] + classifier + ".jar";
 		return url + path;
 	}
 
 	public String getPath() {
-		String[] parts = this.name.split(":", 3);
-		String path = parts[0].replace(".", File.separator) + File.separator + parts[1] + File.separator + parts[2] + File.separator + parts[1] + "-" + parts[2] + ".jar";
+		String[] parts = this.name.split(":", 4);
+		String classifier;
+
+		try {
+			classifier = "-" + parts[3];
+		} catch (IndexOutOfBoundsException ignored) {
+			classifier = "";
+		}
+
+		String path = parts[0].replace(".", File.separator) + File.separator + parts[1] + File.separator + parts[2] + File.separator + parts[1] + "-" + parts[2] + classifier + ".jar";
 		return path.replaceAll(" ", "_");
 	}
 }

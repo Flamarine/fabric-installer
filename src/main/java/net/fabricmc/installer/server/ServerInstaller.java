@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -79,34 +81,51 @@ public class ServerInstaller {
 		List<Library> libraries = new ArrayList<>();
 		String mainClassMeta;
 
-		if (loaderVersion.path == null) { // loader jar unavailable, grab everything from meta
-			Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
+		// BTA: we don't have standard meta, so we simply download the loader
+		Path loaderPath = loaderVersion.path;
+
+		if (loaderPath == null) { // loader jar unavailable, grab everything from meta
+			/*Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
 
 			for (Json libraryJson : json.at("libraries").asJsonList()) {
 				libraries.add(new Library(libraryJson));
 			}
 
 			mainClassMeta = json.at("mainClass").asString();
-		} else { // loader jar available, generate library list from it
-			libraries.add(new Library(String.format("net.fabricmc:fabric-loader:%s", loaderVersion.name), null, loaderVersion.path));
-			libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
+			*/
 
-			try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
-				ZipEntry entry = zf.getEntry("fabric-installer.json");
-				Json json = Json.read(Utils.readString(zf.getInputStream(entry)));
-				Json librariesElem = json.at("libraries");
-
-				for (Json libraryJson : librariesElem.at("common").asJsonList()) {
-					libraries.add(new Library(libraryJson));
-				}
-
-				for (Json libraryJson : librariesElem.at("server").asJsonList()) {
-					libraries.add(new Library(libraryJson));
-				}
-
-				mainClassMeta = json.at("mainClass").at("server").asString();
-			}
+			Path loaderJarPath = libsDir.resolve(String.format("fabric-loader-%s.jar", loaderVersion.name));
+			String loaderUrl = String.format("https://maven.fabricmc.net/net/fabricmc/fabric-loader/%1$s/fabric-loader-%1$s.jar", loaderVersion.name);
+			Utils.downloadFile(new URL(loaderUrl), loaderJarPath);
+			loaderPath = loaderJarPath;
 		}
+
+		// loader jar available, generate library list from it
+		libraries.add(new Library(String.format("net.fabricmc:fabric-loader:%s", loaderVersion.name), null, loaderPath));
+		// BTA: intermediary isn't a thing here
+		// libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
+
+		try (ZipFile zf = new ZipFile(loaderPath.toFile())) {
+			ZipEntry entry = zf.getEntry("fabric-installer.json");
+			Json json = Json.read(Utils.readString(zf.getInputStream(entry)));
+			Json librariesElem = json.at("libraries");
+
+			for (Json libraryJson : librariesElem.at("common").asJsonList()) {
+				libraries.add(new Library(libraryJson));
+			}
+
+			for (Json libraryJson : librariesElem.at("server").asJsonList()) {
+				libraries.add(new Library(libraryJson));
+			}
+
+			mainClassMeta = json.at("mainClass").at("server").asString();
+		}
+
+		String gameProviderLibraries = Utils.readString(
+				Objects.requireNonNull(ServerInstaller.class.getClassLoader().getResourceAsStream("game_providers.json"))
+		);
+		Json gameProvidersElem = Json.read(gameProviderLibraries).at("gameProviders");
+		libraries.add(new Library(gameProvidersElem.at("server")));
 
 		String mainClassManifest = "net.fabricmc.loader.launch.server.FabricServerLauncher";
 		List<Path> libraryFiles = new ArrayList<>();
@@ -134,7 +153,9 @@ public class ServerInstaller {
 
 		progress.updateProgress(Utils.BUNDLE.getString("progress.generating.launch.jar"));
 
-		boolean shadeLibraries = Utils.compareVersions(loaderVersion.name, "0.12.5") <= 0; // FabricServerLauncher in Fabric Loader 0.12.5 and earlier requires shading the libs into the launch jar
+		// BTA: we are not going to use versions earlier than 0.12.5
+		// boolean shadeLibraries = Utils.compareVersions(loaderVersion.name, "0.12.5") <= 0; // FabricServerLauncher in Fabric Loader 0.12.5 and earlier requires shading the libs into the launch jar
+		boolean shadeLibraries = false;
 		makeLaunchJar(launchJar, mainClassMeta, mainClassManifest, libraryFiles, shadeLibraries, progress);
 	}
 

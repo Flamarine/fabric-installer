@@ -60,6 +60,8 @@ public final class ServerLauncher {
 
 		// Set the game jar path to bypass loader's own lookup
 		System.setProperty("fabric.gameJarPath", launchData.serverJar.toAbsolutePath().toString());
+		// BTA: ignore the embedded game provider so we can use our own
+		System.setProperty("fabric.skipMcProvider", "true");
 
 		@SuppressWarnings("resource")
 		URLClassLoader launchClassLoader = new URLClassLoader(new URL[]{launchData.launchJar.toUri().toURL()});
@@ -92,9 +94,9 @@ public final class ServerLauncher {
 
 		// Vanilla server jar
 		String customServerJar = System.getProperty("fabric.installer.server.gameJar", null);
-		Path serverJar = customServerJar == null ? dataDir.resolve(String.format("%s-server.jar", gameVersion)) : Paths.get(customServerJar);
+		Path serverJar = customServerJar == null ? dataDir.resolve(String.format("bta.v%s.server.jar", gameVersion)) : Paths.get(customServerJar);
 		// Includes the mc version as this jar contains intermediary
-		Path serverLaunchJar = dataDir.resolve(String.format("fabric-loader-server-%s-minecraft-%s.jar", loaderVersion.name, gameVersion));
+		Path serverLaunchJar = dataDir.resolve(String.format("fabric-loader-server-%s-bta-%s.jar", loaderVersion.name, gameVersion));
 
 		if (!Files.exists(serverJar)) {
 			InstallerProgress.CONSOLE.updateProgress(Utils.BUNDLE.getString("progress.download.minecraft"));

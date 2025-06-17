@@ -41,7 +41,9 @@ public class MinecraftServerDownloader {
 
 		Path serverJarTmp = serverJar.resolveSibling(serverJar.getFileName().toString() + ".tmp");
 		Files.deleteIfExists(serverJar);
-		Utils.downloadFile(new URL(getServerDownload().url), serverJarTmp);
+		// Utils.downloadFile(new URL(getServerDownload().url), serverJarTmp);
+		String downloadUrl = String.format("https://downloads.betterthanadventure.net/bta-server/release/v%1$s/bta.v%1$s.server.jar", gameVersion);
+		Utils.downloadFile(new URL(downloadUrl), serverJarTmp);
 
 		if (!isServerJarValid(serverJarTmp)) {
 			throw new IOException("Failed to validate downloaded server jar");
@@ -55,7 +57,9 @@ public class MinecraftServerDownloader {
 			return false;
 		}
 
-		return Utils.sha1String(serverJar).equalsIgnoreCase(getServerDownload().sha1);
+		// FIXME: BTA does not provide server sha1 so we cannot validate the server jar
+		// return Utils.sha1String(serverJar).equalsIgnoreCase(getServerDownload().sha1);
+		return true;
 	}
 
 	private VersionMeta getVersionMeta() throws IOException {
