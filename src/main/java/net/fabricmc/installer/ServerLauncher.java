@@ -36,6 +36,8 @@ import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipError;
 
 import net.fabricmc.installer.server.MinecraftServerDownloader;
@@ -60,8 +62,6 @@ public final class ServerLauncher {
 
 		// Set the game jar path to bypass loader's own lookup
 		System.setProperty("fabric.gameJarPath", launchData.serverJar.toAbsolutePath().toString());
-		// BTA: ignore the embedded game provider so we can use our own
-		System.setProperty("fabric.skipMcProvider", "true");
 
 		@SuppressWarnings("resource")
 		URLClassLoader launchClassLoader = new URLClassLoader(new URL[]{launchData.launchJar.toUri().toURL()});
@@ -85,6 +85,7 @@ public final class ServerLauncher {
 		}
 
 		String gameVersion = Objects.requireNonNull(properties.getProperty("game-version"), "no game-version specified in " + INSTALL_CONFIG_NAME);
+		System.setProperty("fabric.gameVersion", normalizeVersion(gameVersion));
 
 		// 0.12 or higher is required
 		validateLoaderVersion(loaderVersion);
@@ -135,6 +136,19 @@ public final class ServerLauncher {
 		String mainClass = readManifest(serverLaunchJar, null);
 
 		return new LaunchData(serverJar, serverLaunchJar, mainClass);
+	}
+
+	public static String normalizeVersion(String input) {
+		Pattern pattern = Pattern.compile("_(\\d+)$");
+		Matcher matcher = pattern.matcher(input);
+
+		if (matcher.find()) {
+			String digits = matcher.group(1);
+			String trimmedDigits = digits.replaceFirst("^0+(?!$)", "");
+			return matcher.replaceFirst("." + trimmedDigits);
+		}
+
+		return input;
 	}
 
 	private static Properties readProperties() throws IOException {

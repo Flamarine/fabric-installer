@@ -11,7 +11,11 @@ plugins {
 version = '1.0.3'
 
 def ENV = System.getenv()
-version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
+
+def btaVersion = project.btaVersion
+// FIXME: should probably automatically lookup loader version in the future
+def loaderVersion = project.loaderVersion
+version = version + "+loader." + loaderVersion + "+bta." + btaVersion
 
 repositories {
 	maven {
@@ -68,6 +72,15 @@ shadowJar {
 	minimize()
 	archiveClassifier.set(null)
 	exclude('icon.ico')
+}
+
+processResources {
+	filesMatching("install.properties") {
+		expand(
+			btaVersion: btaVersion,
+			loaderVersion: loaderVersion
+		)
+	}
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar

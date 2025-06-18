@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -94,7 +93,7 @@ public class ServerInstaller {
 			mainClassMeta = json.at("mainClass").asString();
 			*/
 
-			Path loaderJarPath = libsDir.resolve(String.format("fabric-loader-%s.jar", loaderVersion.name));
+			Path loaderJarPath = libsDir.resolve(String.format("net/fabricmc/fabric-loader/%1$s/fabric-loader-%1$s.jar", loaderVersion.name));
 			String loaderUrl = String.format("https://maven.fabricmc.net/net/fabricmc/fabric-loader/%1$s/fabric-loader-%1$s.jar", loaderVersion.name);
 			Utils.downloadFile(new URL(loaderUrl), loaderJarPath);
 			loaderPath = loaderJarPath;
@@ -120,12 +119,6 @@ public class ServerInstaller {
 
 			mainClassMeta = json.at("mainClass").at("server").asString();
 		}
-
-		String gameProviderLibraries = Utils.readString(
-				Objects.requireNonNull(ServerInstaller.class.getClassLoader().getResourceAsStream("game_providers.json"))
-		);
-		Json gameProvidersElem = Json.read(gameProviderLibraries).at("gameProviders");
-		libraries.add(new Library(gameProvidersElem.at("server")));
 
 		String mainClassManifest = "net.fabricmc.loader.launch.server.FabricServerLauncher";
 		List<Path> libraryFiles = new ArrayList<>();
